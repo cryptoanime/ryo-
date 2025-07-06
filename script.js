@@ -519,21 +519,11 @@ function update() {
     }
 
     // Move player
-    if (touchActive) {
-        const targetX = touchCurrentX - player.width / 2;
-        const dx = targetX - player.x;
-        if (Math.abs(dx) > player.speed) {
-            player.x += Math.sign(dx) * player.speed;
-        } else {
-            player.x = targetX;
-        }
-    } else { // Keyboard input
-        if (rightPressed && player.x < canvas.width - player.width) {
-            player.x += player.speed;
-        }
-        if (leftPressed && player.x > 0) {
-            player.x -= player.speed;
-        }
+    if (rightPressed && player.x < canvas.width - player.width) {
+        player.x += player.speed;
+    }
+    if (leftPressed && player.x > 0) {
+        player.x -= player.speed;
     }
     // Ensure player stays within bounds after any movement
     if (player.x < 0) player.x = 0;
