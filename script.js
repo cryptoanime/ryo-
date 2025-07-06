@@ -135,7 +135,7 @@ const resetScreenDuration = 5000; // 5 seconds for game over/clear screen
 let enemiesDefeatedInLevel = 0; // New: Count of enemies defeated in current level
 
 let touchActive = false; // For touch movement
-let touchCurrentX = 0; // For touch movement
+let touchStartX = 0; // Initial touch X position
 
 // Event listeners
 let rightPressed = false;
@@ -144,23 +144,28 @@ let leftPressed = false;
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
 
-// Get control buttons (still need start button)
-const startButton = document.getElementById('startButton');
+// Get control buttons
+const shootButton = document.getElementById('shootButton');
+const startButton = document.getElementById('startButton'); // New: Get start button
 
-// Start button event listener
+// Button event listeners
+shootButton.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); }, false);
+shootButton.addEventListener('touchend', (e) => { e.preventDefault(); }, false);
+shootButton.addEventListener('mousedown', (e) => { e.preventDefault(); shoot(); }, false);
+shootButton.addEventListener('mouseup', (e) => { e.preventDefault(); }, false);
+
 startButton.addEventListener('click', () => {
     if (!gameStarted && !isWaitingForReset) { // Only start if not already started or waiting
         startGame();
     }
 });
 
-// Canvas touch events for movement and shooting
+// Canvas touch events for movement
 canvas.addEventListener('touchstart', (e) => {
     if (gameStarted && !gameOver) {
         e.preventDefault();
         touchActive = true;
-        touchCurrentX = e.touches[0].clientX;
-        shoot(); // Shoot on touch
+        touchStartX = e.touches[0].clientX;
     } else if (!gameStarted || gameOver) { // Handle start/reset on touch
         if (e.touches.length === 1 && !isWaitingForReset) { // Single tap to start/reset
             if (!gameStarted) {
@@ -175,12 +180,27 @@ canvas.addEventListener('touchstart', (e) => {
 canvas.addEventListener('touchmove', (e) => {
     if (gameStarted && !gameOver && touchActive) {
         e.preventDefault();
-        touchCurrentX = e.touches[0].clientX;
+        const currentTouchX = e.touches[0].clientX;
+        const deltaX = currentTouchX - touchStartX;
+
+        if (deltaX > 0) { // Moving right
+            rightPressed = true;
+            leftPressed = false;
+        } else if (deltaX < 0) { // Moving left
+            leftPressed = true;
+            rightPressed = false;
+        } else {
+            leftPressed = false;
+            rightPressed = false;
+        }
+        touchStartX = currentTouchX; // Update start for next move
     }
 }, false);
 
 canvas.addEventListener('touchend', (e) => {
     touchActive = false;
+    leftPressed = false;
+    rightPressed = false;
 }, false);
 
 function keyDownHandler(e) {
@@ -531,6 +551,27 @@ function update() {
     }
 
     // Move player
+    // Touch movement logic
+    if (touchActive) {
+        const touchX = touchStartX; // Use touchStartX for current touch position
+        const playerCenter = player.x + player.width / 2;
+        const moveThreshold = 10; // How far touch needs to be from player center to move
+
+        if (touchX < playerCenter - moveThreshold) {
+            leftPressed = true;
+            rightPressed = false;
+        } else if (touchX > playerCenter + moveThreshold) {
+            rightPressed = true;
+            leftPressed = false;
+        } else {
+            leftPressed = false;
+            rightPressed = false;
+        }
+    } else { // Keyboard input
+        leftPressed = false; // Reset keyboard flags if touch is not active
+        rightPressed = false;
+    }
+
     if (rightPressed && player.x < canvas.width - player.width) {
         player.x += player.speed;
     }
@@ -927,7 +968,7 @@ function drawStartScreen() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'white';
     ctx.font = '30px Arial';
-    ctx.fillText('Press Space to Start', canvas.width / 2 - 150, canvas.height / 2);
+    ctx.fillText('Press START to Begin', canvas.width / 2 - 150, canvas.height / 2);
 }
 
 function drawGameOverScreen() {
@@ -937,8 +978,7 @@ function drawGameOverScreen() {
     ctx.font = '50px Arial';
     ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2 - 30);
     ctx.font = '30px Arial';
-    ctx.fillText('Score: ' + score, canvas.width / 2 - 70, canvas.height / 2 + 20);
-    ctx.fillText('Press Space to Restart', canvas.width / 2 - 160, canvas.height / 2 + 70);
+    ctx.fillText('Press START to Restart', canvas.width / 2 - 160, canvas.height / 2 + 70);
 }
 
 function drawGameClearScreen() {
@@ -948,8 +988,7 @@ function drawGameClearScreen() {
     ctx.font = '50px Arial';
     ctx.fillText('GAME CLEAR!', canvas.width / 2 - 180, canvas.height / 2 - 30);
     ctx.font = '30px Arial';
-    ctx.fillText('Score: ' + score, canvas.width / 2 - 70, canvas.height / 2 + 20);
-    ctx.fillText('Press Space to Restart', canvas.width / 2 - 160, canvas.height / 2 + 70);
+    ctx.fillText('Press START to Restart', canvas.width / 2 - 160, canvas.height / 2 + 70);
 }
 
 function gameLoop() {
