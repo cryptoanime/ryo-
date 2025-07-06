@@ -47,7 +47,7 @@ for (const name in imageSources) {
 // Player
 const player = {
     x: canvas.width / 2 - 25,
-    y: canvas.height - 100, // Adjusted player Y position
+    y: canvas.height - 60,
     width: 50,
     height: 50,
     speed: 4,
@@ -134,9 +134,6 @@ const resetScreenDuration = 5000; // 5 seconds for game over/clear screen
 
 let enemiesDefeatedInLevel = 0; // New: Count of enemies defeated in current level
 
-let touchActive = false; // For touch movement
-let touchStartX = 0; // Initial touch X position
-
 // Event listeners
 let rightPressed = false;
 let leftPressed = false;
@@ -145,10 +142,22 @@ document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
 
 // Get control buttons
+const leftButton = document.getElementById('leftButton');
+const rightButton = document.getElementById('rightButton');
 const shootButton = document.getElementById('shootButton');
 const startButton = document.getElementById('startButton'); // New: Get start button
 
 // Button event listeners
+leftButton.addEventListener('touchstart', () => { leftPressed = true; }, false);
+leftButton.addEventListener('touchend', () => { leftPressed = false; }, false);
+leftButton.addEventListener('mousedown', () => { leftPressed = true; }, false);
+leftButton.addEventListener('mouseup', () => { leftPressed = false; }, false);
+
+rightButton.addEventListener('touchstart', () => { rightPressed = true; }, false);
+rightButton.addEventListener('touchend', () => { rightPressed = false; }, false);
+rightButton.addEventListener('mousedown', () => { rightPressed = true; }, false);
+rightButton.addEventListener('mouseup', () => { rightPressed = false; }, false);
+
 shootButton.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); }, false);
 shootButton.addEventListener('touchend', (e) => { e.preventDefault(); }, false);
 shootButton.addEventListener('mousedown', (e) => { e.preventDefault(); shoot(); }, false);
@@ -159,49 +168,6 @@ startButton.addEventListener('click', () => {
         startGame();
     }
 });
-
-// Canvas touch events for movement
-canvas.addEventListener('touchstart', (e) => {
-    if (gameStarted && !gameOver) {
-        e.preventDefault();
-        touchActive = true;
-        touchStartX = e.touches[0].clientX;
-    } else if (!gameStarted || gameOver) { // Handle start/reset on touch
-        if (e.touches.length === 1 && !isWaitingForReset) { // Single tap to start/reset
-            if (!gameStarted) {
-                startGame();
-            } else if (gameOver) {
-                resetGame();
-            }
-        }
-    }
-}, false);
-
-canvas.addEventListener('touchmove', (e) => {
-    if (gameStarted && !gameOver && touchActive) {
-        e.preventDefault();
-        const currentTouchX = e.touches[0].clientX;
-        const deltaX = currentTouchX - touchStartX;
-
-        if (deltaX > 0) { // Moving right
-            rightPressed = true;
-            leftPressed = false;
-        } else if (deltaX < 0) { // Moving left
-            leftPressed = true;
-            rightPressed = false;
-        } else {
-            leftPressed = false;
-            rightPressed = false;
-        }
-        touchStartX = currentTouchX; // Update start for next move
-    }
-}, false);
-
-canvas.addEventListener('touchend', (e) => {
-    touchActive = false;
-    leftPressed = false;
-    rightPressed = false;
-}, false);
 
 function keyDownHandler(e) {
     if (e.key == 'Right' || e.key == 'ArrowRight') {
@@ -241,7 +207,7 @@ function startGame() {
     explosions.length = 0;
     powerUps.length = 0; // Clear power-ups
     player.x = canvas.width / 2 - player.width / 2; // Centered horizontally
-    player.y = canvas.height - player.height - 50; // Adjusted player Y position
+    player.y = canvas.height - player.height - 70; // Adjusted player Y position to be above controls
     boss = null; // Reset boss
     currentLevel = 1;
     displayLevelMessage = false;
@@ -280,7 +246,7 @@ function resetGame() {
     explosions.length = 0;
     powerUps.length = 0; // Clear power-ups
     player.x = canvas.width / 2 - player.width / 2; // Centered horizontally
-    player.y = canvas.height - player.height - 50; // Adjusted player Y position
+    player.y = canvas.height - player.height - 70; // Adjusted player Y position to be above controls
     boss = null; // Reset boss
     currentLevel = 1;
     displayLevelMessage = false;
@@ -551,27 +517,6 @@ function update() {
     }
 
     // Move player
-    // Touch movement logic
-    if (touchActive) {
-        const touchX = touchStartX; // Use touchStartX for current touch position
-        const playerCenter = player.x + player.width / 2;
-        const moveThreshold = 10; // How far touch needs to be from player center to move
-
-        if (touchX < playerCenter - moveThreshold) {
-            leftPressed = true;
-            rightPressed = false;
-        } else if (touchX > playerCenter + moveThreshold) {
-            rightPressed = true;
-            leftPressed = false;
-        } else {
-            leftPressed = false;
-            rightPressed = false;
-        }
-    } else { // Keyboard input
-        leftPressed = false; // Reset keyboard flags if touch is not active
-        rightPressed = false;
-    }
-
     if (rightPressed && player.x < canvas.width - player.width) {
         player.x += player.speed;
     }
@@ -988,6 +933,7 @@ function drawGameClearScreen() {
     ctx.font = '50px Arial';
     ctx.fillText('GAME CLEAR!', canvas.width / 2 - 180, canvas.height / 2 - 30);
     ctx.font = '30px Arial';
+    ctx.fillText('Score: ' + score, canvas.width / 2 - 70, canvas.height / 2 + 20);
     ctx.fillText('Press START to Restart', canvas.width / 2 - 160, canvas.height / 2 + 70);
 }
 

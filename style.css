@@ -30,12 +30,17 @@ canvas {
 }
 
 .controls {
-    display: none; /* Move controls off-screen */
+    position: relative; /* Changed to relative */
+    margin-top: 10px; /* Add some space below canvas */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Reduced gap */
 }
 
 .controls button {
-    padding: 15px 30px;
-    font-size: 1.2em;
+    padding: 10px 20px; /* Reduced padding */
+    font-size: 1em; /* Reduced font size */
     background-color: #333;
     color: white;
     border: none;
