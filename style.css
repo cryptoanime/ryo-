@@ -11,13 +11,26 @@ canvas {
     margin: 0 auto; /* Center canvas */
 }
 
-.controls {
+#startButton {
     position: absolute;
-    bottom: 10px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
+    top: 10px;
+    right: 10px;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 100; /* Ensure it's above canvas */
+}
+
+#startButton:active {
+    background-color: #45a049;
+}
+
+.controls {
+    display: none; /* Move controls off-screen */
 }
 
 .controls button {

@@ -47,7 +47,7 @@ for (const name in imageSources) {
 // Player
 const player = {
     x: canvas.width / 2 - 25,
-    y: canvas.height - 60,
+    y: canvas.height - 100, // Adjusted player Y position
     width: 50,
     height: 50,
     speed: 4,
@@ -134,6 +134,9 @@ const resetScreenDuration = 5000; // 5 seconds for game over/clear screen
 
 let enemiesDefeatedInLevel = 0; // New: Count of enemies defeated in current level
 
+let touchActive = false; // For touch movement
+let touchCurrentX = 0; // For touch movement
+
 // Event listeners
 let rightPressed = false;
 let leftPressed = false;
@@ -141,30 +144,24 @@ let leftPressed = false;
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
 
-// Get control buttons
-const leftButton = document.getElementById('leftButton');
-const rightButton = document.getElementById('rightButton');
-const shootButton = document.getElementById('shootButton');
+// Get control buttons (still need start button)
+const startButton = document.getElementById('startButton');
 
-// Button event listeners
-leftButton.addEventListener('touchstart', () => { leftPressed = true; }, false);
-leftButton.addEventListener('touchend', () => { leftPressed = false; }, false);
-leftButton.addEventListener('mousedown', () => { leftPressed = true; }, false);
-leftButton.addEventListener('mouseup', () => { leftPressed = false; }, false);
+// Start button event listener
+startButton.addEventListener('click', () => {
+    if (!gameStarted && !isWaitingForReset) { // Only start if not already started or waiting
+        startGame();
+    }
+});
 
-rightButton.addEventListener('touchstart', () => { rightPressed = true; }, false);
-rightButton.addEventListener('touchend', () => { rightPressed = false; }, false);
-rightButton.addEventListener('mousedown', () => { rightPressed = true; }, false);
-rightButton.addEventListener('mouseup', () => { rightPressed = false; }, false);
-
-shootButton.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); }, false);
-shootButton.addEventListener('touchend', (e) => { e.preventDefault(); }, false);
-shootButton.addEventListener('mousedown', (e) => { e.preventDefault(); shoot(); }, false);
-shootButton.addEventListener('mouseup', (e) => { e.preventDefault(); }, false);
-
-// Canvas touch for start/reset
+// Canvas touch events for movement and shooting
 canvas.addEventListener('touchstart', (e) => {
-    if (!gameStarted || gameOver) { // Handle start/reset on touch
+    if (gameStarted && !gameOver) {
+        e.preventDefault();
+        touchActive = true;
+        touchCurrentX = e.touches[0].clientX;
+        shoot(); // Shoot on touch
+    } else if (!gameStarted || gameOver) { // Handle start/reset on touch
         if (e.touches.length === 1 && !isWaitingForReset) { // Single tap to start/reset
             if (!gameStarted) {
                 startGame();
@@ -173,6 +170,17 @@ canvas.addEventListener('touchstart', (e) => {
             }
         }
     }
+}, false);
+
+canvas.addEventListener('touchmove', (e) => {
+    if (gameStarted && !gameOver && touchActive) {
+        e.preventDefault();
+        touchCurrentX = e.touches[0].clientX;
+    }
+}, false);
+
+canvas.addEventListener('touchend', (e) => {
+    touchActive = false;
 }, false);
 
 function keyDownHandler(e) {
@@ -188,9 +196,8 @@ function keyDownHandler(e) {
         } else if (gameOver) {
             if (isWaitingForReset) {
                 return;
-            } else {
-                resetGame();
             }
+            resetGame();
         }
     }
 }
@@ -214,7 +221,7 @@ function startGame() {
     explosions.length = 0;
     powerUps.length = 0; // Clear power-ups
     player.x = canvas.width / 2 - player.width / 2; // Centered horizontally
-    player.y = canvas.height - player.height - 10; // Near bottom
+    player.y = canvas.height - player.height - 50; // Adjusted player Y position
     boss = null; // Reset boss
     currentLevel = 1;
     displayLevelMessage = false;
@@ -238,6 +245,9 @@ function startGame() {
     gameStartTime = Date.now(); // Start time for current level
 
     enemySpawnIntervalId = setInterval(spawnEnemy, enemySpawnInterval);
+
+    // Hide start button
+    startButton.style.display = 'none';
 }
 
 function resetGame() {
@@ -250,7 +260,7 @@ function resetGame() {
     explosions.length = 0;
     powerUps.length = 0; // Clear power-ups
     player.x = canvas.width / 2 - player.width / 2; // Centered horizontally
-    player.y = canvas.height - player.height - 10; // Near bottom
+    player.y = canvas.height - player.height - 50; // Adjusted player Y position
     boss = null; // Reset boss
     currentLevel = 1;
     displayLevelMessage = false;
@@ -274,6 +284,8 @@ function resetGame() {
     if (enemySpawnIntervalId) {
         clearInterval(enemySpawnIntervalId);
     }
+    // Show start button
+    startButton.style.display = 'block';
     drawStartScreen();
 }
 
@@ -694,6 +706,7 @@ function update() {
                     isWaitingForReset = true;
                     setTimeout(() => {
                         isWaitingForReset = false;
+                        resetGame(); // Auto-reset after game over screen
                     }, resetScreenDuration);
                 }
             }
@@ -743,6 +756,7 @@ function update() {
                     isWaitingForReset = true;
                     setTimeout(() => {
                         isWaitingForReset = false;
+                        resetGame(); // Auto-reset after game over screen
                     }, resetScreenDuration);
                 }
             }
