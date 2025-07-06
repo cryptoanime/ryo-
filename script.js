@@ -134,6 +134,9 @@ const resetScreenDuration = 5000; // 5 seconds for game over/clear screen
 
 let enemiesDefeatedInLevel = 0; // New: Count of enemies defeated in current level
 
+let touchActive = false; // For touch movement
+let touchStartX = 0; // Initial touch X position
+
 // Event listeners
 let rightPressed = false;
 let leftPressed = false;
@@ -168,6 +171,49 @@ startButton.addEventListener('click', () => {
         startGame();
     }
 });
+
+// Canvas touch for start/reset and movement
+canvas.addEventListener('touchstart', (e) => {
+    if (gameStarted && !gameOver) {
+        e.preventDefault();
+        touchActive = true;
+        touchStartX = e.touches[0].clientX;
+    } else if (!gameStarted || gameOver) { // Handle start/reset on touch
+        if (e.touches.length === 1 && !isWaitingForReset) { // Single tap to start/reset
+            if (!gameStarted) {
+                startGame();
+            } else if (gameOver) {
+                resetGame();
+            }
+        }
+    }
+}, false);
+
+canvas.addEventListener('touchmove', (e) => {
+    if (gameStarted && !gameOver && touchActive) {
+        e.preventDefault();
+        const currentTouchX = e.touches[0].clientX;
+        const deltaX = currentTouchX - touchStartX;
+
+        if (deltaX > 0) { // Moving right
+            rightPressed = true;
+            leftPressed = false;
+        } else if (deltaX < 0) { // Moving left
+            leftPressed = true;
+            rightPressed = false;
+        } else {
+            leftPressed = false;
+            rightPressed = false;
+        }
+        touchStartX = currentTouchX; // Update start for next move
+    }
+}, false);
+
+canvas.addEventListener('touchend', (e) => {
+    touchActive = false;
+    leftPressed = false;
+    rightPressed = false;
+}, false);
 
 function keyDownHandler(e) {
     if (e.key == 'Right' || e.key == 'ArrowRight') {
@@ -207,7 +253,7 @@ function startGame() {
     explosions.length = 0;
     powerUps.length = 0; // Clear power-ups
     player.x = canvas.width / 2 - player.width / 2; // Centered horizontally
-    player.y = canvas.height - player.height - 70; // Adjusted player Y position to be above controls
+    player.y = canvas.height - player.height - 10; // Adjusted player Y position to be above controls
     boss = null; // Reset boss
     currentLevel = 1;
     displayLevelMessage = false;
@@ -246,7 +292,7 @@ function resetGame() {
     explosions.length = 0;
     powerUps.length = 0; // Clear power-ups
     player.x = canvas.width / 2 - player.width / 2; // Centered horizontally
-    player.y = canvas.height - player.height - 70; // Adjusted player Y position to be above controls
+    player.y = canvas.height - player.height - 10; // Adjusted player Y position to be above controls
     boss = null; // Reset boss
     currentLevel = 1;
     displayLevelMessage = false;
@@ -923,6 +969,7 @@ function drawGameOverScreen() {
     ctx.font = '50px Arial';
     ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2 - 30);
     ctx.font = '30px Arial';
+    ctx.fillText('Score: ' + score, canvas.width / 2 - 70, canvas.height / 2 + 20);
     ctx.fillText('Press START to Restart', canvas.width / 2 - 160, canvas.height / 2 + 70);
 }
 
