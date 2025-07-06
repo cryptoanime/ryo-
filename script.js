@@ -134,9 +134,6 @@ const resetScreenDuration = 5000; // 5 seconds for game over/clear screen
 
 let enemiesDefeatedInLevel = 0; // New: Count of enemies defeated in current level
 
-let touchActive = false; // For touch movement
-let touchCurrentX = 0; // For touch movement
-
 // Event listeners
 let rightPressed = false;
 let leftPressed = false;
@@ -144,13 +141,30 @@ let leftPressed = false;
 document.addEventListener('keydown', keyDownHandler, false);
 document.addEventListener('keyup', keyUpHandler, false);
 
+// Get control buttons
+const leftButton = document.getElementById('leftButton');
+const rightButton = document.getElementById('rightButton');
+const shootButton = document.getElementById('shootButton');
+
+// Button event listeners
+leftButton.addEventListener('touchstart', () => { leftPressed = true; }, false);
+leftButton.addEventListener('touchend', () => { leftPressed = false; }, false);
+leftButton.addEventListener('mousedown', () => { leftPressed = true; }, false);
+leftButton.addEventListener('mouseup', () => { leftPressed = false; }, false);
+
+rightButton.addEventListener('touchstart', () => { rightPressed = true; }, false);
+rightButton.addEventListener('touchend', () => { rightPressed = false; }, false);
+rightButton.addEventListener('mousedown', () => { rightPressed = true; }, false);
+rightButton.addEventListener('mouseup', () => { rightPressed = false; }, false);
+
+shootButton.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); }, false);
+shootButton.addEventListener('touchend', (e) => { e.preventDefault(); }, false);
+shootButton.addEventListener('mousedown', (e) => { e.preventDefault(); shoot(); }, false);
+shootButton.addEventListener('mouseup', (e) => { e.preventDefault(); }, false);
+
+// Canvas touch for start/reset
 canvas.addEventListener('touchstart', (e) => {
-    if (gameStarted && !gameOver) {
-        e.preventDefault();
-        touchActive = true;
-        touchCurrentX = e.touches[0].clientX;
-        shoot(); // Manual shooting on touch
-    } else if (!gameStarted || gameOver) { // Handle start/reset on touch
+    if (!gameStarted || gameOver) { // Handle start/reset on touch
         if (e.touches.length === 1 && !isWaitingForReset) { // Single tap to start/reset
             if (!gameStarted) {
                 startGame();
@@ -159,17 +173,6 @@ canvas.addEventListener('touchstart', (e) => {
             }
         }
     }
-}, false);
-
-canvas.addEventListener('touchmove', (e) => {
-    if (gameStarted && !gameOver && touchActive) {
-        e.preventDefault();
-        touchCurrentX = e.touches[0].clientX;
-    }
-}, false);
-
-canvas.addEventListener('touchend', (e) => {
-    touchActive = false;
 }, false);
 
 function keyDownHandler(e) {

@@ -1,8 +1,36 @@
 body {
     text-align: center;
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling on mobile */
 }
 
 canvas {
     border: 1px solid black;
     background-color: #f0f0f0;
+    display: block; /* Remove extra space below canvas */
+    margin: 0 auto; /* Center canvas */
+}
+
+.controls {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.controls button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* Remove tap highlight on mobile */
+}
+
+.controls button:active {
+    background-color: #555;
 }
